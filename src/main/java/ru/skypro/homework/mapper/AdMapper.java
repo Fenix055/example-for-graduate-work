@@ -3,6 +3,7 @@ package ru.skypro.homework.mapper;
 import ru.skypro.homework.dto.Ad;
 import ru.skypro.homework.dto.ExtendedAd;
 import ru.skypro.homework.model.AdModel;
+import ru.skypro.homework.dto.CreateOrUpdateAd;
 
 import org.springframework.stereotype.Component;
 
@@ -11,11 +12,11 @@ import org.springframework.stereotype.Component;
 public class AdMapper {
 
     public Ad toAdDto(AdModel model) {
-        if (model == null) {
-            return null;
-        }
-
         Ad dto = new Ad();
+
+        if (model == null) {
+            return dto;
+        }
 
         dto.setPk(model.getPk());
         dto.setPrice(model.getPrice());
@@ -29,11 +30,11 @@ public class AdMapper {
     }
 
     public ExtendedAd toExtendedAdDto(AdModel model) {
-        if (model == null) {
-            return null;
-        }
-
         ExtendedAd dto = new ExtendedAd();
+
+        if (model == null) {
+            return dto;
+        }
 
         dto.setPk(model.getPk());
         dto.setPrice(model.getPrice());
@@ -48,6 +49,19 @@ public class AdMapper {
             dto.setPhone(model.getAuthor().getPhone());
         }
         return dto;
+    }
+
+    public AdModel toModel(CreateOrUpdateAd dto) {
+        AdModel model = new AdModel();
+
+        if (dto == null) {
+            return model;
+        }
+
+        model.setTitle(dto.getTitle());
+        model.setPrice(dto.getPrice());
+        model.setDescription(dto.getDescription());
+        return model;
     }
 
 }

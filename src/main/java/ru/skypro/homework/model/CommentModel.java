@@ -1,6 +1,7 @@
 package ru.skypro.homework.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
@@ -8,7 +9,8 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "comments")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentModel {
@@ -30,5 +32,18 @@ public class CommentModel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ad_id", nullable = false)
     private AdModel ad;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CommentModel that = (CommentModel) o;
+        return pk != null && pk.equals(that.pk);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 
 }
