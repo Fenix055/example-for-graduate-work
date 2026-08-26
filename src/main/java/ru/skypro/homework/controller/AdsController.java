@@ -35,18 +35,19 @@ public class AdsController {
         return ResponseEntity.ok(dummyAds);
     }
 
-    @io.swagger.v3.oas.annotations.Operation(
+    @Operation(
             summary = "Добавление объявления",
-            description = "Принимает данные объявления и изображение в формате multipart/form-data",
+            description = "Принимает данные объявления в виде JSON-строки и изображение",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Created"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized")
             }
     )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Ad> addAd(@ModelAttribute CreateOrUpdateAd properties,
-                                    @RequestParam("image") MultipartFile image) {
-        log.info("Request to add new ad via multipart/form-data");
+    public ResponseEntity<Ad> addAd(
+            @RequestPart("properties") CreateOrUpdateAd properties,
+            @RequestPart("image") MultipartFile image) {
+        log.info("Request to add new ad via multipart/form-data (properties + image)");
         Ad dummyAd = new Ad();
         return ResponseEntity.status(HttpStatus.CREATED).body(dummyAd);
     }

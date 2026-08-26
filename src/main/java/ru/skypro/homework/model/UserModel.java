@@ -1,6 +1,7 @@
 package ru.skypro.homework.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
@@ -11,7 +12,8 @@ import ru.skypro.homework.dto.Role;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserModel {

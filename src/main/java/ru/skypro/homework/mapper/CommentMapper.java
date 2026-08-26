@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 public class CommentMapper {
 
     public Comment toDto(CommentModel model) {
-        if (model == null) {
-            return null;
-        }
-
         Comment dto = new Comment();
+
+        if (model == null) {
+            return dto;
+        }
 
         dto.setPk(model.getPk());
         dto.setText(model.getText());
@@ -29,10 +29,11 @@ public class CommentMapper {
     }
 
     public CommentModel toModel(CreateOrUpdateComment dto) {
-        if (dto == null) {
-            return null;
-        }
         CommentModel model = new CommentModel();
+
+        if (dto == null) {
+            return model;
+        }
 
         model.setText(dto.getText());
         return model;
