@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,8 @@ public class AdServiceImpl implements AdService {
     @Override
     public Ad addAd(CreateOrUpdateAd properties, MultipartFile image, Authentication authentication) {
         log.info("Business logic: adding new ad by user {}", authentication.getName());
-        UserModel author = userRepository.findByEmail(authentication.getName()).orElse(null);
+        UserModel author = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         AdModel adModel = adMapper.toModel(properties);
         adModel.setAuthor(author);
@@ -62,7 +64,8 @@ public class AdServiceImpl implements AdService {
     @Override
     public ExtendedAd getAdDetails(int id) {
         log.info("Business logic: getting ad details for id {}", id);
-        AdModel adModel = adRepository.findById(id).orElse(null);
+        AdModel adModel = adRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found"));
         return adMapper.toExtendedAdDto(adModel);
     }
 
@@ -72,6 +75,9 @@ public class AdServiceImpl implements AdService {
             "@adRepository.findById(#id).get().author.email == authentication.name")
     public void removeAd(int id) {
         log.info("Business logic: removing ad id {}", id);
+        if (!adRepository.existsById(id)) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found");
+        }
         adRepository.deleteById(id);
     }
 
@@ -81,13 +87,13 @@ public class AdServiceImpl implements AdService {
             "@adRepository.findById(#id).get().author.email == authentication.name")
     public Ad updateAd(int id, CreateOrUpdateAd createOrUpdateAd) {
         log.info("Business logic: updating ad id {}", id);
-        AdModel adModel = adRepository.findById(id).orElse(null);
-        if (adModel != null) {
-            adModel.setTitle(createOrUpdateAd.getTitle());
-            adModel.setPrice(createOrUpdateAd.getPrice());
-            adModel.setDescription(createOrUpdateAd.getDescription());
-            adRepository.save(adModel);
-        }
+        AdModel adModel = adRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found"));
+
+        adModel.setTitle(createOrUpdateAd.getTitle());
+        adModel.setPrice(createOrUpdateAd.getPrice());
+        adModel.setDescription(createOrUpdateAd.getDescription());
+        adRepository.save(adModel);
         return adMapper.toAdDto(adModel);
     }
 

@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +31,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean setPassword(NewPassword newPassword, Authentication authentication) {
         log.info("Business logic: setting new password for user {}", authentication.getName());
-        UserModel userModel = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (userModel == null) {
-            return false;
-        }
+        UserModel userModel = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (passwordEncoder.matches(newPassword.getCurrentPassword(), userModel.getPassword())) {
             userModel.setPassword(passwordEncoder.encode(newPassword.getNewPassword()));
@@ -46,29 +45,30 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUser(Authentication authentication) {
         log.info("Business logic: getting info for user {}", authentication.getName());
-        UserModel userModel = userRepository.findByEmail(authentication.getName()).orElse(null);
+        UserModel userModel = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return userMapper.toDto(userModel);
     }
 
     @Override
     public UpdateUser updateUser(UpdateUser updateUser, Authentication authentication) {
         log.info("Business logic: updating info for user {}", authentication.getName());
-        UserModel userModel = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (userModel != null) {
-            userMapper.updateModel(updateUser, userModel);
-            userRepository.save(userModel);
-        }
+        UserModel userModel = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        userMapper.updateModel(updateUser, userModel);
+        userRepository.save(userModel);
         return updateUser;
     }
 
     @Override
     public void updateUserImage(MultipartFile image, Authentication authentication) {
         log.info("Business logic: updating image for user {}", authentication.getName());
-        UserModel userModel = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (userModel != null) {
-            userModel.setImage("/users/images/" + authentication.getName());
-            userRepository.save(userModel);
-        }
+        UserModel userModel = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        userModel.setImage("/users/images/" + authentication.getName());
+        userRepository.save(userModel);
     }
 
 }
