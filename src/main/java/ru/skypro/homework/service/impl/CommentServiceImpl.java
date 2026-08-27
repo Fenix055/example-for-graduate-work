@@ -15,6 +15,7 @@ import ru.skypro.homework.service.CommentService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +52,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment addComment(int id, CreateOrUpdateComment createOrUpdateComment, Authentication authentication) {
         log.info("Business logic: adding comment to ad id {} by user {}", id, authentication.getName());
-        AdModel ad = adRepository.findById(id).orElse(null);
-        UserModel author = userRepository.findByEmail(authentication.getName()).orElse(null);
+        AdModel ad = adRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found"));
+        UserModel author = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         CommentModel commentModel = commentMapper.toModel(createOrUpdateComment);
         commentModel.setAd(ad);
@@ -69,6 +72,9 @@ public class CommentServiceImpl implements CommentService {
             "@commentRepository.findById(#commentId).get().author.email == authentication.name")
     public void deleteComment(int adId, int commentId) {
         log.info("Business logic: deleting comment id {} from ad id {}", commentId, adId);
+        if (!commentRepository.existsById(commentId)) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
+        }
         commentRepository.deleteById(commentId);
     }
 
@@ -78,11 +84,11 @@ public class CommentServiceImpl implements CommentService {
             "@commentRepository.findById(#commentId).get().author.email == authentication.name")
     public Comment updateComment(int adId, int commentId, CreateOrUpdateComment createOrUpdateComment) {
         log.info("Business logic: updating comment id {} from ad id {}", commentId, adId);
-        CommentModel commentModel = commentRepository.findById(commentId).orElse(null);
-        if (commentModel != null) {
-            commentModel.setText(createOrUpdateComment.getText());
-            commentRepository.save(commentModel);
-        }
+        CommentModel commentModel = commentRepository.findById(commentId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
+
+        commentModel.setText(createOrUpdateComment.getText());
+        commentRepository.save(commentModel);
         return commentMapper.toDto(commentModel);
     }
 
