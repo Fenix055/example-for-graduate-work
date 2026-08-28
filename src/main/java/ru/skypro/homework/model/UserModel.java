@@ -1,13 +1,12 @@
 package ru.skypro.homework.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ru.skypro.homework.dto.Role;
 
 import javax.persistence.*;
-
-import ru.skypro.homework.dto.Role;
 
 
 @Entity

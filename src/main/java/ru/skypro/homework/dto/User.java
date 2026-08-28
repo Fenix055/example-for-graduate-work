@@ -1,8 +1,7 @@
 package ru.skypro.homework.dto;
 
-import lombok.Data;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 @Data
 @Schema(description = "Информация о пользователе")

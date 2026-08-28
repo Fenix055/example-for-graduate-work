@@ -1,5 +1,13 @@
 package ru.skypro.homework.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.Ad;
 import ru.skypro.homework.dto.Ads;
 import ru.skypro.homework.dto.CreateOrUpdateAd;
@@ -12,24 +20,13 @@ import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.AdService;
 import ru.skypro.homework.service.ImageService;
 
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-
-import org.springframework.stereotype.Service;
-
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpStatus;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 
+/**
+ * Реализация сервиса для управления объявлениями.
+ */
 
 @Slf4j
 @Service
@@ -40,6 +37,9 @@ public class AdServiceImpl implements AdService {
     private final UserRepository userRepository;
     private final AdMapper adMapper;
     private final ImageService imageService;
+
+    @Value("${images.dir-path}")
+    private String imagesDirectory;
 
     @Override
     public Ads getAllAds() {
@@ -93,7 +93,7 @@ public class AdServiceImpl implements AdService {
         if (adModel.getImage() != null && adModel.getImage().startsWith("/images/ads/")) {
             String fileName = adModel.getImage().substring("/images/ads/".length());
             try {
-                Files.deleteIfExists(Paths.get("market-images", "ads", fileName));
+                java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(imagesDirectory, "ads", fileName));
             } catch (java.io.IOException e) {
                 log.error("Failed to delete ad image file from disk: {}", fileName, e);
             }
@@ -142,11 +142,26 @@ public class AdServiceImpl implements AdService {
         AdModel adModel = adRepository.findById(id)
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found"));
 
+        String oldImageRoute = adModel.getImage();
+
         try {
             String fileName = imageService.uploadImage(image, "ads");
+
             adModel.setImage("/images/ads/" + fileName);
             adRepository.save(adModel);
+
+            if (oldImageRoute != null && oldImageRoute.startsWith("/images/ads/")) {
+                String oldFileName = oldImageRoute.substring("/images/ads/".length());
+                try {
+                    java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(imagesDirectory, "ads", oldFileName));
+                    log.info("Old image file successfully deleted from disk: {}", oldFileName);
+                } catch (java.io.IOException e) {
+                    log.error("Failed to delete old ad image file from disk: {}", oldFileName, e);
+                }
+            }
+
             return imageService.getImage(fileName, "ads");
+
         } catch (java.io.IOException e) {
             log.error("Failed to update ad image", e);
             throw new org.springframework.web.server.ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update image");

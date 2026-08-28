@@ -1,14 +1,11 @@
 package ru.skypro.homework.controller;
 
-import ru.skypro.homework.service.ImageService;
-
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import ru.skypro.homework.service.ImageService;
 
 import java.io.IOException;
 
