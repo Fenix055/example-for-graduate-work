@@ -7,6 +7,7 @@ import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.model.UserModel;
 import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.UserService;
+import ru.skypro.homework.service.ImageService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final ImageService imageService;
 
     @Override
     public boolean setPassword(NewPassword newPassword, Authentication authentication) {
@@ -67,8 +69,14 @@ public class UserServiceImpl implements UserService {
         UserModel userModel = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        userModel.setImage("/users/images/" + authentication.getName());
-        userRepository.save(userModel);
+        try {
+            String fileName = imageService.uploadImage(image, "users");
+            userModel.setImage("/images/users/" + fileName);
+            userRepository.save(userModel);
+        } catch (java.io.IOException e) {
+            log.error("Failed to upload user avatar", e);
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save avatar");
+        }
     }
 
 }

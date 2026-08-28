@@ -10,6 +10,7 @@ import ru.skypro.homework.model.UserModel;
 import ru.skypro.homework.repository.AdRepository;
 import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.AdService;
+import ru.skypro.homework.service.ImageService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,9 @@ import org.springframework.http.HttpStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +39,7 @@ public class AdServiceImpl implements AdService {
     private final AdRepository adRepository;
     private final UserRepository userRepository;
     private final AdMapper adMapper;
+    private final ImageService imageService;
 
     @Override
     public Ads getAllAds() {
@@ -55,7 +60,14 @@ public class AdServiceImpl implements AdService {
 
         AdModel adModel = adMapper.toModel(properties);
         adModel.setAuthor(author);
-        adModel.setImage("/ads/images/default.jpg");
+
+        try {
+            String fileName = imageService.uploadImage(image, "ads");
+            adModel.setImage("/images/ads/" + fileName);
+        } catch (java.io.IOException e) {
+            log.error("Failed to save ad image", e);
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save image");
+        }
 
         AdModel savedAd = adRepository.save(adModel);
         return adMapper.toAdDto(savedAd);
@@ -75,10 +87,19 @@ public class AdServiceImpl implements AdService {
             "@adRepository.findById(#id).get().author.email == authentication.name")
     public void removeAd(int id) {
         log.info("Business logic: removing ad id {}", id);
-        if (!adRepository.existsById(id)) {
-            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found");
+        AdModel adModel = adRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found"));
+
+        if (adModel.getImage() != null && adModel.getImage().startsWith("/images/ads/")) {
+            String fileName = adModel.getImage().substring("/images/ads/".length());
+            try {
+                Files.deleteIfExists(Paths.get("market-images", "ads", fileName));
+            } catch (java.io.IOException e) {
+                log.error("Failed to delete ad image file from disk: {}", fileName, e);
+            }
         }
-        adRepository.deleteById(id);
+
+        adRepository.delete(adModel);
     }
 
     @Override
@@ -118,7 +139,18 @@ public class AdServiceImpl implements AdService {
             "@adRepository.findById(#id).get().author.email == authentication.name")
     public byte[] updateAdImage(int id, MultipartFile image) {
         log.info("Business logic: updating image for ad id {}", id);
-        return new byte[0];
+        AdModel adModel = adRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Ad not found"));
+
+        try {
+            String fileName = imageService.uploadImage(image, "ads");
+            adModel.setImage("/images/ads/" + fileName);
+            adRepository.save(adModel);
+            return imageService.getImage(fileName, "ads");
+        } catch (java.io.IOException e) {
+            log.error("Failed to update ad image", e);
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update image");
+        }
     }
 
 }

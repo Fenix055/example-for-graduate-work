@@ -41,7 +41,9 @@ public class AdsController {
 
 
 
-    @Operation(summary = "Добавление объявления", responses = {
+    @Operation(summary = "Добавление объявления",
+            description = "Принимает данные объявления в виде JSON-строки и изображение",
+            responses = {
             @ApiResponse(responseCode = "201", description = "Created"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
