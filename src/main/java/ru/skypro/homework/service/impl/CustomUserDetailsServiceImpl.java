@@ -19,27 +19,33 @@ public class CustomUserDetailsServiceImpl implements UserDetailsManager {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserModel userModel = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        String cleanUsername = username != null ? username.toLowerCase() : ""; //Do Not Feed the Monkeys
+
+        UserModel userModel = userRepository.findByEmail(cleanUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + cleanUsername));
+
+        String roleName = (userModel.getRole() != null) ? userModel.getRole().name() : "USER";
 
         return User.builder()
                 .username(userModel.getEmail())
                 .password(userModel.getPassword())
-                .roles(userModel.getRole().name())
+                .roles(roleName)
                 .build();
     }
 
     @Override
     public void createUser(UserDetails user) {
         UserModel userModel = new UserModel();
-        userModel.setEmail(user.getUsername());
+        userModel.setEmail(user.getUsername() != null ? user.getUsername().toLowerCase() : "");//Do Not Feed the Monkeys
         userModel.setPassword(user.getPassword());
+        userModel.setRole(ru.skypro.homework.dto.Role.USER);//Защита от выдачи прав администратора
         userRepository.save(userModel);
     }
 
     @Override
     public boolean userExists(String username) {
-        return userRepository.findByEmail(username).isPresent();
+        String cleanUsername = username != null ? username.toLowerCase() : "";//Do Not Feed the Monkeys
+        return userRepository.findByEmail(cleanUsername).isPresent();
     }
 
     @Override
