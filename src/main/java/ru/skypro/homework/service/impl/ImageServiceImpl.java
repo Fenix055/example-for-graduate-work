@@ -50,14 +50,15 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public byte[] getImage(String fileName, String dir) throws IOException {
+        Path filePath = Paths.get(imagesDirectory, dir).resolve(fileName).toAbsolutePath().normalize();
+        Path baseDir = Paths.get(imagesDirectory).toAbsolutePath().normalize();
 
-        Path filePath = Paths.get(imagesDirectory, dir).resolve(fileName).normalize();
-        if (!filePath.startsWith(Paths.get(imagesDirectory).toAbsolutePath().normalize())) {
+        if (!filePath.startsWith(baseDir)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Доступ запрещен");
         }
 
         if (!Files.exists(filePath)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Изображение не найдено на сервере");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Изображение не найдено");
         }
 
         return Files.readAllBytes(filePath);
