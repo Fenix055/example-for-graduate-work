@@ -1,11 +1,10 @@
 package ru.skypro.homework.mapper;
 
-import ru.skypro.homework.dto.User;
-import ru.skypro.homework.dto.UpdateUser;
-import ru.skypro.homework.model.UserModel;
-import ru.skypro.homework.dto.Register;
-
 import org.springframework.stereotype.Component;
+import ru.skypro.homework.dto.Register;
+import ru.skypro.homework.dto.UpdateUser;
+import ru.skypro.homework.dto.User;
+import ru.skypro.homework.model.UserModel;
 
 @Component
 public class UserMapper {

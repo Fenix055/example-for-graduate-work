@@ -1,11 +1,10 @@
 package ru.skypro.homework.mapper;
 
+import org.springframework.stereotype.Component;
 import ru.skypro.homework.dto.Ad;
+import ru.skypro.homework.dto.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ExtendedAd;
 import ru.skypro.homework.model.AdModel;
-import ru.skypro.homework.dto.CreateOrUpdateAd;
-
-import org.springframework.stereotype.Component;
 
 
 @Component

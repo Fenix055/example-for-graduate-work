@@ -1,24 +1,24 @@
 package ru.skypro.homework.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPassword;
 import ru.skypro.homework.dto.UpdateUser;
 import ru.skypro.homework.dto.User;
 import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.model.UserModel;
 import ru.skypro.homework.repository.UserRepository;
-import ru.skypro.homework.service.UserService;
 import ru.skypro.homework.service.ImageService;
+import ru.skypro.homework.service.UserService;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import org.springframework.stereotype.Service;
-
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpStatus;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+/**
+ * Реализация сервиса для управления профилями пользователей.
+ */
 
 @Slf4j
 @Service

@@ -1,12 +1,12 @@
 package ru.skypro.homework.service.impl;
 
-import ru.skypro.homework.service.ImageService;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.server.ResponseStatusException;
+import ru.skypro.homework.service.ImageService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+/**
+ * Реализация сервиса для сохранения и чтения изображений на диске.
+ */
 
 @Slf4j
 @Service
@@ -26,12 +29,17 @@ public class ImageServiceImpl implements ImageService {
     public String uploadImage(MultipartFile image, String dir) throws IOException {
         log.info("Uploading file to subdirectory: {}", dir);
 
+        String contentType = image.getContentType();
+        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Разрешены только форматы JPEG и PNG");
+        }
+
         Path targetDir = Paths.get(imagesDirectory, dir);
         if (!Files.exists(targetDir)) {
             Files.createDirectories(targetDir);
         }
 
-        String extension = getExtension(image.getOriginalFilename());
+        String extension = contentType.equals("image/png") ? ".png" : ".jpg";
         String fileName = UUID.randomUUID().toString() + extension;
 
         Path filePath = targetDir.resolve(fileName);
@@ -42,19 +50,18 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public byte[] getImage(String fileName, String dir) throws IOException {
-        Path filePath = Paths.get(imagesDirectory, dir, fileName);
-        if (Files.exists(filePath)) {
-            return Files.readAllBytes(filePath);
-        }
-        return new byte[0];
-    }
+        Path filePath = Paths.get(imagesDirectory, dir).resolve(fileName).toAbsolutePath().normalize();
+        Path baseDir = Paths.get(imagesDirectory).toAbsolutePath().normalize();
 
-
-    private String getExtension(String fileName) {
-        if (fileName == null || !fileName.contains(".")) {
-            return ".jpg";
+        if (!filePath.startsWith(baseDir)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Доступ запрещен");
         }
-        return fileName.substring(fileName.lastIndexOf("."));
+
+        if (!Files.exists(filePath)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Изображение не найдено");
+        }
+
+        return Files.readAllBytes(filePath);
     }
 
 }

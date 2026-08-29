@@ -1,18 +1,15 @@
 package ru.skypro.homework.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.core.Authentication;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
 import ru.skypro.homework.dto.Ad;
 import ru.skypro.homework.dto.Ads;
 import ru.skypro.homework.dto.CreateOrUpdateAd;
@@ -40,13 +37,12 @@ public class AdsController {
     }
 
 
-
     @Operation(summary = "Добавление объявления",
             description = "Принимает данные объявления в виде JSON-строки и изображение",
             responses = {
-            @ApiResponse(responseCode = "201", description = "Created"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
+                    @ApiResponse(responseCode = "201", description = "Created"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Ad> addAd(@RequestPart("properties") CreateOrUpdateAd properties,
                                     @RequestPart("image") MultipartFile image,
@@ -55,8 +51,6 @@ public class AdsController {
         Ad createdAd = adService.addAd(properties, image, authentication);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAd);
     }
-
-
 
 
     @Operation(summary = "Получение информации об объявлении", responses = {
@@ -75,8 +69,6 @@ public class AdsController {
     }
 
 
-
-
     @Operation(summary = "Удаление объявления", responses = {
             @ApiResponse(responseCode = "204", description = "No Content"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -92,9 +84,6 @@ public class AdsController {
         adService.removeAd(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
-
-
 
 
     @Operation(summary = "Обновление информации об объявлении", responses = {
@@ -115,9 +104,6 @@ public class AdsController {
     }
 
 
-
-
-
     @Operation(summary = "Получение объявлений авторизованного пользователя", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -128,9 +114,6 @@ public class AdsController {
         Ads ads = adService.getAdsMe(authentication);
         return ResponseEntity.ok(ads);
     }
-
-
-
 
 
     @Operation(summary = "Обновление картинки объявления", responses = {
